@@ -1,5 +1,3 @@
-
-
 function blackhole(element) {
     const container = document.querySelector(element);
     const h = container.offsetHeight;
@@ -154,18 +152,24 @@ function blackhole(element) {
         expanse = true;
         returning = false;
         this.classList.add('open');
-        
-        // Start the return cycle after full expansion (20-30 seconds)
+
+        // 新增：轉場後跳轉到 page2.html
+        this.addEventListener('transitionend', function handler() {
+            window.location.href = 'page2.html';
+            this.removeEventListener('transitionend', handler);
+        });
+
+        // 保留原本的 return cycle（可刪除或保留，依需求）
+        /*
         setTimeout(() => {
             expanse = false;
             returning = true;
-            
-            // After particles return, reset to normal orbit
             setTimeout(() => {
                 returning = false;
                 this.classList.remove('open');
-            }, 8000); // 8 seconds to return slowly
-        }, 25000); // 25 seconds of expansion experience
+            }, 8000);
+        }, 25000);
+        */
     });
     
     centerHover.addEventListener('mouseover', function() {
