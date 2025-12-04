@@ -153,12 +153,17 @@ function blackhole(element) {
         returning = false;
         this.classList.add('open');
 
-        // 新增：轉場後跳轉到 page2.html
-        this.addEventListener('transitionend', function handler() {
-            window.location.href = 'page2.html';
-            this.removeEventListener('transitionend', handler);
-        });
+        // 新增：body 淡出動畫
+        document.body.classList.add('fadeout');
 
+        // 等待動畫結束再跳轉
+        document.body.addEventListener('transitionend', function handler(e) {
+            if (e.propertyName === 'opacity') {
+                window.location.href = 'page2.html';
+                document.body.removeEventListener('transitionend', handler);
+            }
+        });
+        
         // 保留原本的 return cycle（可刪除或保留，依需求）
         /*
         setTimeout(() => {
