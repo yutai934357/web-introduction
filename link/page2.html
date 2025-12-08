@@ -2,25 +2,91 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>第二頁</title>
     <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-    <div id="blackhole">
+
+    <div id="fixed-content">
+        
         <div class="centerHover">
             <span>主頁面</span>
         </div>
+
         <div class="main-links-bar">
-          <a href="portfolio.html">作品集</a>
-          <span class="bar">|</span>
-          <a href="about.html">自我介紹</a>
-          <span class="bar">|</span>
-          <a href="experience.html">經歷</a>
-          <span class="bar">|</span>
-          <a href="001.html" class="back-link">返回上一頁</a>
+            <a href="portfolio.html">作品集</a>
+            <span class="bar">|</span>
+            <a href="about.html">自我介紹</a>
+            <span class="bar">|</span>
+            <a href="experience.html">經歷</a>
+            <span class="bar">|</span>
+            <a href="001.html" class="back-link">返回上一頁</a>
         </div>
+
+    </div>
+
+    <div id="blackhole">
         <canvas id="canvas"></canvas>
     </div>
+
+    <div class="scroll-spacer"></div>
+
     <script src="../script.js"></script>
+
+    <script>
+    (function(){
+        // 線性插值計算
+        function lerp(start, end, t) {
+            return start * (1 - t) + end * t;
+        }
+
+        // 定義顏色 RGB
+        const colorBlack = { r: 25, g: 25, b: 25 };
+        const colorGray  = { r: 136, g: 136, b: 136 };
+        const colorWhite = { r: 255, g: 255, b: 255 };
+
+        function updateBg(){
+            // 計算滾動進度 0 ~ 1
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            let progress = window.scrollY / maxScroll;
+            progress = Math.max(0, Math.min(1, progress));
+
+            let r, g, b;
+
+            // 前半段：黑 -> 灰
+            if(progress < 0.5) {
+                let t = progress / 0.5; 
+                r = lerp(colorBlack.r, colorGray.r, t);
+                g = lerp(colorBlack.g, colorGray.g, t);
+                b = lerp(colorBlack.b, colorGray.b, t);
+            } 
+            // 後半段：灰 -> 白
+            else {
+                let t = (progress - 0.5) / 0.5;
+                r = lerp(colorGray.r, colorWhite.r, t);
+                g = lerp(colorGray.g, colorWhite.g, t);
+                b = lerp(colorGray.b, colorWhite.b, t);
+            }
+
+            // 套用背景色
+            document.body.style.backgroundColor = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+            
+            // 選用功能：當背景太亮時，自動加深文字顏色 (如果不喜歡文字有陰影，可以開啟這段)
+            /*
+            const links = document.querySelectorAll('.main-links-bar a, .centerHover span');
+            if (progress > 0.8) {
+                links.forEach(el => el.style.color = '#333');
+            } else {
+                links.forEach(el => el.style.color = ''); // 恢復 CSS 預設
+            }
+            */
+        }
+
+        window.addEventListener('scroll', updateBg);
+        window.addEventListener('resize', updateBg);
+        updateBg(); // 初始化
+    })();
+    </script>
 </body>
 </html>
