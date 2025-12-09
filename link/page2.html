@@ -8,21 +8,28 @@
 </head>
 <body>
 
-    <div id="fixed-content">
+    <div class="parallax-bg"></div>
+    <div id="fixed-content" class="fadeout">
         
         <div class="centerHover">
             <span>主頁面</span>
         </div>
 
         <div class="main-links-bar">
-            <a href="portfolio.html">作品集</a>
-            <span class="bar">|</span>
-            <a href="about.html">自我介紹</a>
-            <span class="bar">|</span>
-            <a href="experience.html">經歷</a>
-            <span class="bar">|</span>
-            <a href="001.html" class="back-link">返回上一頁</a>
+          <a class="nav-link" href="portfolio.html">作品集</a>
+          <span class="bar">|</span>
+          <a class="nav-link" href="about.html">自我介紹</a>
+          <span class="bar">|</span>
+          <a class="nav-link" href="experience.html">經歷</a>
+          <span class="bar">|</span>
+          <a class="nav-link back-link" href="001.html">返回上一頁</a>
         </div>
+
+        <!-- 新增背景切換按鈕 -->
+        <button id="theme-toggle-btn" class="theme-btn">
+            <span class="icon-sun">☀</span>
+            <span class="icon-moon">☾</span>
+        </button>
 
     </div>
 
@@ -32,7 +39,190 @@
 
     <div class="scroll-spacer"></div>
 
+    <style>
+        /* 背景切換按鈕樣式 */
+        .theme-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+            pointer-events: auto; /* 關鍵修正：恢復點擊感應 */
+        }
+
+        .theme-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .theme-btn .icon-sun, .theme-btn .icon-moon {
+            position: absolute;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s;
+        }
+
+        /* 預設顯示太陽 (代表點擊切換到亮色/底部) */
+        .theme-btn .icon-moon {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+
+        /* 亮色模式下的按鈕樣式 */
+        body.light-mode .theme-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        body.light-mode .theme-btn .icon-sun {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+
+        body.light-mode .theme-btn .icon-moon {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+
     <script src="../script.js"></script>
+    <script>
+    // 柔和跳轉動畫 - 背景從目前顏色漸層回黑色再跳轉
+    (function(){
+      const colorBlack = { r: 25, g: 25, b: 25 };
+      const colorGray  = { r: 136, g: 136, b: 136 };
+      const colorWhite = { r: 255, g: 255, b: 255 };
+
+      // 獲取當前滾動位置對應的顏色
+      function getCurrentBgColor(){
+        const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+        let progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+        return calculateColor(progress);
+      }
+
+      function calculateColor(progress) {
+        let r, g, b;
+        if(progress < 0.5){
+          let t = progress / 0.5;
+          r = lerp(colorBlack.r, colorGray.r, t);
+          g = lerp(colorBlack.g, colorGray.g, t);
+          b = lerp(colorBlack.b, colorGray.b, t);
+        } else {
+          let t = (progress - 0.5) / 0.5;
+          r = lerp(colorGray.r, colorWhite.r, t);
+          g = lerp(colorGray.g, colorWhite.g, t);
+          b = lerp(colorGray.b, colorWhite.b, t);
+        }
+        return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
+      }
+
+      function lerp(a, b, t){ return a + (b - a) * t; }
+
+      // 監聽滾動以更新背景色 (保留原本邏輯)
+      window.addEventListener('scroll', function() {
+          const color = getCurrentBgColor();
+          document.body.style.backgroundColor = `rgb(${color.r},${color.g},${color.b})`;
+          
+          // 更新按鈕狀態
+          const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+          const isBottom = window.scrollY > maxScroll * 0.8; // 接近底部就算亮色模式
+          
+          if (isBottom) {
+              document.body.classList.add('light-mode');
+          } else {
+              document.body.classList.remove('light-mode');
+          }
+      });
+
+      // 背景切換按鈕邏輯
+      const themeBtn = document.getElementById('theme-toggle-btn');
+      themeBtn.addEventListener('click', function() {
+          const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+          const currentScroll = window.scrollY;
+          const isAtTop = currentScroll < maxScroll / 2;
+          
+          const targetScroll = isAtTop ? maxScroll : 0;
+          const duration = 1500; // 1.5秒絲滑滾動
+          
+          smoothScrollTo(targetScroll, duration);
+      });
+
+      // 自定義平滑滾動函數
+      function smoothScrollTo(targetY, duration) {
+          const startY = window.scrollY;
+          const distance = targetY - startY;
+          const startTime = performance.now();
+
+          function step(currentTime) {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              
+              // Easing function: easeInOutCubic
+              const ease = progress < 0.5 
+                  ? 4 * progress * progress * progress 
+                  : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+              window.scrollTo(0, startY + distance * ease);
+
+              if (progress < 1) {
+                  requestAnimationFrame(step);
+              }
+          }
+
+          requestAnimationFrame(step);
+      }
+
+      function animateBgToBlack(callback){
+        const startColor = getCurrentBgColor();
+        const endColor = colorBlack;
+        const duration = 700; // ms
+        const startTime = performance.now();
+
+        function step(now){
+          let t = Math.min(1, (now - startTime) / duration);
+          let r = Math.round(lerp(startColor.r, endColor.r, t));
+          let g = Math.round(lerp(startColor.g, endColor.g, t));
+          let b = Math.round(lerp(startColor.b, endColor.b, t));
+          document.body.style.backgroundColor = `rgb(${r},${g},${b})`;
+          if(t < 1){
+            requestAnimationFrame(step);
+          } else {
+            if(callback) callback();
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      document.querySelectorAll('.nav-link').forEach(function(link){
+        link.addEventListener('click', function(e){
+          e.preventDefault();
+          var href = this.getAttribute('href');
+          // 先讓內容淡出
+          var fc = document.getElementById('fixed-content');
+          if(fc){
+            fc.classList.remove('fadein');
+            fc.classList.add('fadeout');
+          }
+          // 背景漸層回黑色
+          animateBgToBlack(function(){
+            window.location.href = href;
+          });
+        });
+      });
+    })();
+    </script>
 
     <script>
     (function(){
@@ -87,6 +277,21 @@
         window.addEventListener('resize', updateBg);
         updateBg(); // 初始化
     })();
+    </script>
+
+    <script>
+    // Parallax scroll effect
+    window.addEventListener('scroll', function() {
+      const scrolled = window.scrollY;
+      document.querySelector('.parallax-bg').style.transform = `translateY(${scrolled * 0.5}px)`;
+    });
+    // 文字淡入動畫
+    window.addEventListener('DOMContentLoaded', function(){
+      setTimeout(function(){
+        document.getElementById('fixed-content').classList.remove('fadeout');
+        document.getElementById('fixed-content').classList.add('fadein');
+      }, 100);
+    });
     </script>
 </body>
 </html>

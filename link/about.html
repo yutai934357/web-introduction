@@ -2,69 +2,422 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>頁面標題</title> <link rel="stylesheet" href="styles.css">
+    <title>自我介紹 About Me</title> <link rel="stylesheet" href="../styles.css">
     <style>
         /* 這裡的 CSS 專門給內容頁面使用，覆蓋原本 styles.css 的設定 */
         
         /* 1. 允許捲動：覆蓋原本 body 的 overflow: hidden */
         body {
-            overflow: auto !important; 
-            background-color: #191919;
+            overflow-y: auto !important; 
+            overflow-x: hidden;
+            background-color: #1a1a1a;
             color: white;
-            padding: 50px; /* 內容不要貼邊 */
+            padding: 0;
+            margin: 0;
             box-sizing: border-box;
-            display: block; /* 確保內容由上往下排 */
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        /* 動畫效果 */
+        .fadeout {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fadein {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        /* 視差背景 */
+        .parallax-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+            z-index: -1;
+            will-change: transform;
+        }
+        
+        /* 裝飾性背景元素 */
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            filter: blur(60px);
+            z-index: -1;
         }
 
         /* 內容區塊樣式 */
+        .content-wrapper {
+            padding: 80px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .content-container {
-            max-width: 800px; /* 限制寬度，閱讀比較舒適 */
-            margin: 0 auto;   /* 區塊置中 */
-            font-family: serif; /你的主頁字體一致 */* 跟
-            line-height: 1.6;
+            max-width: 900px;
+            width: 100%;
+            background: rgba(20, 20, 20, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            margin-bottom: 50px;
         }
 
         h1 {
-            border-bottom: 2px solid #666;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
+            font-size: 3rem;
+            margin-bottom: 50px;
+            text-align: center;
+            letter-spacing: 2px;
+            color: #fff;
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            
+            /* 標題滾動特效 */
+            transition: all 0.8s ease;
+            opacity: 0.5;
+        }
+        
+        h1.in-view {
+            opacity: 1;
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+            transform: translateX(-50%) scale(1.1);
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 20%;
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+        }
+
+        /* 個人資料佈局 */
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 60px;
+            
+            /* 區塊滾動特效 */
+            transition: all 0.8s ease;
+            opacity: 0.2;
+            transform: translateY(50px);
+            filter: blur(3px);
+        }
+
+        .profile-section.in-view {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+
+        @media (min-width: 768px) {
+            .profile-section {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+        }
+
+        .profile-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #555, #888);
+            flex-shrink: 0;
+            border: 5px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 1.2rem;
+        }
+
+        .profile-text {
+            flex: 1;
+        }
+
+        .profile-text h2 {
+            margin-top: 0;
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 15px;
+            transition: all 0.5s ease;
+        }
+        
+        .profile-section.in-view .profile-text h2 {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            transform: translateX(10px);
+        }
+
+        .profile-text p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #888; /* 預設較暗 */
+            margin-bottom: 20px;
+            transition: all 0.5s ease;
+        }
+        
+        .profile-section.in-view .profile-text p {
+            color: #fff; /* 聚焦變亮 */
+            font-weight: 500; /* 變粗體 */
+            transform: scale(1.02); /* 微放大 */
+        }
+
+        /* 技能區塊 */
+        .skills-section {
+            margin-top: 40px;
+            opacity: 0.2;
+            transform: translateX(-50px);
+            transition: all 0.8s ease;
+        }
+        
+        .skills-section.in-view {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .skills-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: #fff;
+            border-left: 4px solid #fff;
+            padding-left: 15px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .skill-tag {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            color: #ddd;
+            font-size: 0.95rem;
+            transition: background 0.3s;
+        }
+
+        .skill-tag:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        /* 圖片展示區 */
+        .life-gallery {
+            margin-top: 60px;
+            opacity: 0.2;
+            transform: scale(0.9);
+            transition: all 0.8s ease;
+        }
+        
+        .life-gallery.in-view {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .life-gallery h3 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            color: #fff;
             text-align: center;
         }
 
-        p {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #ddd;
+        .gallery-row {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #555 transparent;
+        }
+
+        .gallery-row::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .gallery-row::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 4px;
+        }
+
+        .gallery-img {
+            min-width: 250px;
+            height: 180px;
+            background: #333;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
         }
 
         /* 返回按鈕樣式 */
+        .back-btn-container {
+            text-align: center;
+            margin-top: 60px;
+        }
+
         .back-btn {
             display: inline-block;
-            margin-top: 40px;
-            color: #aaa;
+            color: #fff;
             text-decoration: none;
-            border: 1px solid #aaa;
-            padding: 10px 20px;
-            border-radius: 20px;
-            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 30px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.05);
         }
 
         .back-btn:hover {
-            color: white;
-            border-color: white;
+            background: #fff;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
         }
     </style>
 </head>
 <body>
-
-    <div class="content-container">
-        <h1>自我介紹</h1>
-
-        <p>你好，我是...（在這裡輸入你的文字）...</p>
-        <p>這是我關於...</p>
-        
-        <a href="page2.html" class="back-btn">← 返回主選單</a>
+    <div class="parallax-bg">
+        <div class="bg-shape" style="top: -10%; right: -10%; width: 600px; height: 600px; background: rgba(255,255,255,0.02);"></div>
+        <div class="bg-shape" style="bottom: 10%; left: 5%; width: 200px; height: 200px; background: rgba(255,255,255,0.03);"></div>
     </div>
 
+    <div class="content-wrapper">
+        <div class="content-container fadeout">
+            <h1>自我介紹 About Me</h1>
+
+            <div class="profile-section">
+                <div class="profile-photo">Photo</div>
+                <div class="profile-text">
+                    <h2>你好，我是 [你的名字]</h2>
+                    <p>我是一名熱愛網頁設計與前端開發的創作者。喜歡探索新技術，並致力於創造美觀且實用的數位體驗。</p>
+                    <p>除了寫程式，我也喜歡攝影、閱讀和旅行。我相信生活中的每一個細節都能成為設計的靈感來源。</p>
+                    <p>在這個快速變化的數位時代，我保持著持續學習的熱情，隨時準備迎接新的挑戰。</p>
+                </div>
+            </div>
+
+            <div class="skills-section">
+                <h3>專業技能</h3>
+                <div class="skills-grid">
+                    <div class="skill-tag">HTML5</div>
+                    <div class="skill-tag">CSS3</div>
+                    <div class="skill-tag">JavaScript</div>
+                    <div class="skill-tag">UI/UX Design</div>
+                    <div class="skill-tag">Responsive Web</div>
+                    <div class="skill-tag">Git</div>
+                    <div class="skill-tag">React</div>
+                    <div class="skill-tag">Node.js</div>
+                </div>
+            </div>
+
+            <div class="life-gallery">
+                <h3>生活剪影</h3>
+                <div class="gallery-row">
+                    <div class="gallery-img">Life 01</div>
+                    <div class="gallery-img">Life 02</div>
+                    <div class="gallery-img">Life 03</div>
+                    <div class="gallery-img">Life 04</div>
+                </div>
+            </div>
+            
+            <div class="back-btn-container">
+                <a href="page2.html" class="back-btn">← 返回主選單</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Parallax scroll effect
+    window.addEventListener('scroll', function() {
+      const scrolled = window.scrollY;
+      const bg = document.querySelector('.parallax-bg');
+      const shapes = document.querySelectorAll('.bg-shape');
+      
+      bg.style.transform = `translateY(${scrolled * 0.5}px)`;
+      
+      shapes.forEach((shape, index) => {
+          const speed = 0.2 + (index * 0.1);
+          // 加入水平移動與旋轉
+          shape.style.transform = `translateY(${scrolled * speed}px) translateX(${scrolled * 0.05 * (index % 2 ? 1 : -1)}px) rotate(${scrolled * 0.05}deg)`;
+      });
+    });
+
+    // Intersection Observer for Scroll Focus Effect
+    document.addEventListener('DOMContentLoaded', function() {
+        const observerOptions = {
+            root: null,
+            rootMargin: '-15% 0px -15% 0px', // 聚焦範圍更集中
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                } else {
+                    entry.target.classList.remove('in-view');
+                }
+            });
+        }, observerOptions);
+
+        // 觀察目標
+        const targets = document.querySelectorAll('h1, .profile-section, .skills-section, .life-gallery');
+        targets.forEach(target => observer.observe(target));
+    });
+
+    // 內容淡入動畫
+    window.addEventListener('DOMContentLoaded', function(){
+      setTimeout(function(){
+        document.querySelector('.content-container').classList.remove('fadeout');
+        document.querySelector('.content-container').classList.add('fadein');
+      }, 100);
+    });
+
+    // 返回按鈕點擊淡出效果
+    document.addEventListener('DOMContentLoaded', function(){
+      const backBtn = document.querySelector('.back-btn');
+      if(backBtn){
+        backBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          const href = this.getAttribute('href');
+          const cc = document.querySelector('.content-container');
+          if(cc){
+            cc.classList.remove('fadein');
+            cc.classList.add('fadeout');
+            document.querySelector('.content-wrapper').style.opacity = '0';
+            document.querySelector('.content-wrapper').style.transition = 'opacity 0.7s';
+            
+            setTimeout(function(){
+              window.location.href = href;
+            }, 700);
+          } else {
+            window.location.href = href;
+          }
+        });
+      }
+    });
+    </script>
 </body>
 </html>

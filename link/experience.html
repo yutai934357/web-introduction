@@ -2,69 +2,414 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>頁面標題</title> <link rel="stylesheet" href="styles.css">
+    <title>經歷 Experience</title> <link rel="stylesheet" href="../styles.css">
     <style>
         /* 這裡的 CSS 專門給內容頁面使用，覆蓋原本 styles.css 的設定 */
         
         /* 1. 允許捲動：覆蓋原本 body 的 overflow: hidden */
         body {
-            overflow: auto !important; 
-            background-color: #191919;
+            overflow-y: auto !important; 
+            overflow-x: hidden;
+            background-color: #1a1a1a;
             color: white;
-            padding: 50px; /* 內容不要貼邊 */
+            padding: 0;
+            margin: 0;
             box-sizing: border-box;
-            display: block; /* 確保內容由上往下排 */
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        /* 動畫效果 */
+        .fadeout {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fadein {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        /* 視差背景 */
+        .parallax-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            z-index: -1;
+            will-change: transform;
+        }
+        
+        /* 裝飾性背景元素 */
+        .bg-line {
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            z-index: -1;
         }
 
         /* 內容區塊樣式 */
+        .content-wrapper {
+            padding: 80px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .content-container {
-            max-width: 800px; /* 限制寬度，閱讀比較舒適 */
-            margin: 0 auto;   /* 區塊置中 */
-            font-family: serif; /* 跟你的主頁字體一致 */
-            line-height: 1.6;
+            max-width: 900px;
+            width: 100%;
+            background: rgba(25, 25, 25, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            margin-bottom: 50px;
         }
 
         h1 {
-            border-bottom: 2px solid #666;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
+            font-size: 3rem;
+            margin-bottom: 60px;
             text-align: center;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+            
+            /* 標題滾動特效 */
+            transition: all 0.8s ease;
+            opacity: 0.5;
+            transform: scale(0.9);
+        }
+        
+        h1.in-view {
+            opacity: 1;
+            transform: scale(1.1);
+            text-shadow: 0 0 25px rgba(255,255,255,0.6);
+            letter-spacing: 5px;
         }
 
-        p {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #ddd;
+        /* 時間軸樣式 */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+            
+            /* 滾動聚焦特效 */
+            opacity: 0.2;
+            transform: translateX(-30px);
+            filter: blur(2px);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .timeline-item.in-view {
+            opacity: 1;
+            transform: translateX(0);
+            filter: blur(0);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -36px;
+            top: 5px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #555; /* 預設暗色 */
+            border: 4px solid #333;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+            transition: transform 0.5s, background 0.5s, box-shadow 0.5s;
+        }
+        
+        .timeline-item.in-view .timeline-dot {
+            background: #fff; /* 聚焦變亮 */
+            transform: scale(1.5);
+            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+        }
+
+        .timeline-item:hover .timeline-dot {
+            transform: scale(1.8);
+            background: #fff;
+        }
+
+        .timeline-date {
+            font-size: 0.9rem;
+            color: #555; /* 預設暗色 */
+            margin-bottom: 8px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.5s;
+        }
+        
+        .timeline-item.in-view .timeline-date {
+            color: #fff;
+            font-size: 1.1rem; /* 放大 */
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+
+        .timeline-content {
+            background: rgba(255,255,255,0.01);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.02);
+            transition: transform 0.5s, box-shadow 0.5s, background 0.5s, border 0.5s;
+        }
+        
+        .timeline-item.in-view .timeline-content {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.2);
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .timeline-item:hover .timeline-content {
+            transform: translateX(10px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.12);
+            border-color: #fff;
+        }
+
+        .timeline-content h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+            color: #888;
+            transition: all 0.5s;
+        }
+        
+        .timeline-item.in-view .timeline-content h3 {
+            color: #fff;
+            font-size: 1.6rem; /* 標題放大 */
+            letter-spacing: 1px;
+        }
+
+        .timeline-content h4 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #555;
+            font-weight: normal;
+            transition: all 0.5s;
+        }
+        
+        .timeline-item.in-view .timeline-content h4 {
+            color: #ccc;
+        }
+
+        .timeline-content p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #666;
+            transition: all 0.5s;
+        }
+        
+        .timeline-item.in-view .timeline-content p {
+            color: #fff;
+            font-weight: 500; /* 內文變粗 */
+            font-size: 1.05rem;
+        }
+
+        /* 經歷圖片區 */
+        .experience-images {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .exp-img {
+            width: 80px;
+            height: 60px;
+            background: #444;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #888;
         }
 
         /* 返回按鈕樣式 */
+        .back-btn-container {
+            text-align: center;
+            margin-top: 60px;
+        }
+
         .back-btn {
             display: inline-block;
-            margin-top: 40px;
-            color: #aaa;
+            color: #fff;
             text-decoration: none;
-            border: 1px solid #aaa;
-            padding: 10px 20px;
-            border-radius: 20px;
-            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 12px 30px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            background: rgba(255,255,255,0.05);
         }
 
         .back-btn:hover {
-            color: white;
-            border-color: white;
+            background: #fff;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,255,255,0.3);
         }
     </style>
 </head>
 <body>
-
-    <div class="content-container">
-        <h1>自我介紹</h1>
-
-        <p>你好</p>
-        <p>關於</p>
-        
-        <a href="page2.html" class="back-btn">← 返回主選單</a>
+    <div class="parallax-bg">
+        <div class="bg-line" style="left: 20%;"></div>
+        <div class="bg-line" style="left: 50%;"></div>
+        <div class="bg-line" style="left: 80%;"></div>
     </div>
 
+    <div class="content-wrapper">
+        <div class="content-container fadeout">
+            <h1>經歷 Experience</h1>
+
+            <div class="timeline">
+                <!-- 經歷 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2023 - PRESENT</div>
+                    <div class="timeline-content">
+                        <h3>資深前端工程師</h3>
+                        <h4>科技創新股份有限公司</h4>
+                        <p>負責公司核心產品的前端架構設計與開發，帶領團隊導入現代化開發流程，提升產品效能與使用者體驗。</p>
+                        <div class="experience-images">
+                            <div class="exp-img">IMG</div>
+                            <div class="exp-img">IMG</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 經歷 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2021 - 2023</div>
+                    <div class="timeline-content">
+                        <h3>網頁設計師</h3>
+                        <h4>創意數位工作室</h4>
+                        <p>參與多個品牌形象網站的設計與切版，與後端工程師協作完成功能串接，確保跨瀏覽器兼容性。</p>
+                    </div>
+                </div>
+
+                <!-- 經歷 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2019 - 2021</div>
+                    <div class="timeline-content">
+                        <h3>實習前端開發</h3>
+                        <h4>新創網路公司</h4>
+                        <p>協助維護公司官方網站，參與內部管理系統的介面優化，學習並應用 Vue.js 框架進行開發。</p>
+                    </div>
+                </div>
+                
+                <!-- 經歷 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2015 - 2019</div>
+                    <div class="timeline-content">
+                        <h3>資訊工程學系</h3>
+                        <h4>國立科技大學</h4>
+                        <p>主修資訊工程，學習程式設計基礎、演算法與資料結構，並在畢業專題中開發校園導覽 App。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="back-btn-container">
+                <a href="page2.html" class="back-btn">← 返回主選單</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Parallax scroll effect
+    window.addEventListener('scroll', function() {
+      const scrolled = window.scrollY;
+      const bg = document.querySelector('.parallax-bg');
+      const lines = document.querySelectorAll('.bg-line');
+      
+      bg.style.transform = `translateY(${scrolled * 0.4}px)`;
+      
+      // 線條錯位移動
+      lines.forEach((line, index) => {
+          const speed = 0.2 + (index * 0.15);
+          line.style.transform = `translateY(${scrolled * speed}px)`;
+          line.style.opacity = 0.1 + (scrolled * 0.0005); // 滾動越深越亮
+      });
+    });
+
+    // Intersection Observer for Scroll Focus Effect
+    document.addEventListener('DOMContentLoaded', function() {
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -20% 0px', // 聚焦範圍非常集中
+            threshold: 0.3
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                } else {
+                    entry.target.classList.remove('in-view');
+                }
+            });
+        }, observerOptions);
+
+        // 觀察目標
+        const targets = document.querySelectorAll('h1, .timeline-item');
+        targets.forEach(target => observer.observe(target));
+    });
+
+    // 內容淡入動畫
+    window.addEventListener('DOMContentLoaded', function(){
+      setTimeout(function(){
+        document.querySelector('.content-container').classList.remove('fadeout');
+        document.querySelector('.content-container').classList.add('fadein');
+      }, 100);
+    });
+
+    // 返回按鈕點擊淡出效果
+    document.addEventListener('DOMContentLoaded', function(){
+      const backBtn = document.querySelector('.back-btn');
+      if(backBtn){
+        backBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          const href = this.getAttribute('href');
+          const cc = document.querySelector('.content-container');
+          if(cc){
+            cc.classList.remove('fadein');
+            cc.classList.add('fadeout');
+            document.querySelector('.content-wrapper').style.opacity = '0';
+            document.querySelector('.content-wrapper').style.transition = 'opacity 0.7s';
+            
+            setTimeout(function(){
+              window.location.href = href;
+            }, 700);
+          } else {
+            window.location.href = href;
+          }
+        });
+      }
+    });
+    </script>
 </body>
 </html>
