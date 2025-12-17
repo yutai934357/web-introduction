@@ -30,24 +30,72 @@
             transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
 
-        /* 視差背景 */
+        /* 視差背景（重新設計：深色多層漸層 + 光暈） */
         .parallax-bg {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
             z-index: -1;
-            will-change: transform;
+            overflow: hidden;
+
+            /* 由 JS 依滾動更新的變數（全程偏暗） */
+            --bg: 16;
+            --a: 0.45;
+
+            background:
+              radial-gradient(900px 650px at 20% 25%, rgba(160, 210, 255, 0.10), rgba(0,0,0,0) 60%),
+              radial-gradient(850px 650px at 78% 72%, rgba(255, 170, 140, 0.08), rgba(0,0,0,0) 62%),
+              radial-gradient(520px 520px at 55% 45%, rgba(255,255,255,0.035), rgba(0,0,0,0) 65%),
+              linear-gradient(140deg,
+                rgb(calc(var(--bg) + 0),  calc(var(--bg) + 0),  calc(var(--bg) + 0)) 0%,
+                rgb(calc(var(--bg) + 10), calc(var(--bg) + 10), calc(var(--bg) + 10)) 55%,
+                rgb(calc(var(--bg) + 18), calc(var(--bg) + 18), calc(var(--bg) + 18)) 100%
+              );
+
+            will-change: transform, filter;
         }
-        
-        /* 裝飾性背景元素 */
+
+        .parallax-bg::before,
+        .parallax-bg::after {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            pointer-events: none;
+            opacity: var(--a);
+            filter: blur(70px);
+            mix-blend-mode: screen;
+            transform: translate3d(0,0,0);
+            will-change: transform, opacity;
+        }
+
+        .parallax-bg::before {
+            background:
+              radial-gradient(closest-side at 30% 30%, rgba(160,210,255,0.14), rgba(0,0,0,0) 72%),
+              radial-gradient(closest-side at 72% 70%, rgba(255,170,140,0.10), rgba(0,0,0,0) 74%);
+        }
+
+        .parallax-bg::after {
+            background:
+              radial-gradient(closest-side at 60% 25%, rgba(210,255,230,0.06), rgba(0,0,0,0) 74%),
+              radial-gradient(closest-side at 35% 80%, rgba(255,255,255,0.04), rgba(0,0,0,0) 75%);
+            opacity: calc(var(--a) * 0.65);
+        }
+
+        /* 裝飾性背景元素（線條） */
         .bg-line {
             position: absolute;
             width: 1px;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.03);
+            height: 120%;
+            top: -10%;
+            background: linear-gradient(
+              to bottom,
+              rgba(255,255,255,0.00),
+              rgba(255,255,255,0.06),
+              rgba(255,255,255,0.00)
+            );
             z-index: -1;
+            will-change: transform, opacity;
         }
 
         /* 內容區塊樣式 */
@@ -340,22 +388,68 @@
     </div>
 
     <script>
-    // Parallax scroll effect
-    window.addEventListener('scroll', function() {
-      const scrolled = window.scrollY;
+    // Parallax scroll effect（重新設計：rAF 節流 + 平滑插值）
+    (function(){
       const bg = document.querySelector('.parallax-bg');
-      const lines = document.querySelectorAll('.bg-line');
-      
-      bg.style.transform = `translateY(${scrolled * 0.4}px)`;
-      
-      // 線條錯位移動
-      lines.forEach((line, index) => {
-          const speed = 0.2 + (index * 0.15);
-          line.style.transform = `translateY(${scrolled * speed}px)`;
-          line.style.opacity = 0.1 + (scrolled * 0.0005); // 滾動越深越亮
-      });
-    });
+      const lines = Array.from(document.querySelectorAll('.bg-line'));
+      if(!bg) return;
 
+      function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+      function lerp(a,b,t){ return a + (b-a)*t; }
+
+      let rafId = 0;
+      let currentP = 0;
+
+      function apply(p){
+        // 全程偏暗：16 -> 36，讓背景有「暗色漸層」但不會亮到白
+        const base = Math.round(lerp(16, 36, p));
+        const alpha = lerp(0.50, 0.38, p);
+        bg.style.setProperty('--bg', String(base));
+        bg.style.setProperty('--a', alpha.toFixed(3));
+
+        const y = window.scrollY;
+        bg.style.transform = `translate3d(0, ${y * 0.05}px, 0)`;
+        bg.style.filter = `saturate(${(1 + p*0.10).toFixed(3)}) contrast(${(1 + p*0.06).toFixed(3)})`;
+        bg.style.backgroundPosition = `${(y*0.008).toFixed(2)}px ${(y*0.018).toFixed(2)}px`;
+
+        // 線條錯位（不同速度、透明度隨滾動微調）
+        lines.forEach((line, index) => {
+          const speed = 0.015 + (index * 0.01);
+          line.style.transform = `translate3d(0, ${(y * (0.06 + speed)).toFixed(2)}px, 0)`;
+          line.style.opacity = String(lerp(0.22, 0.50, p));
+        });
+      }
+
+      function update(){
+        const doc = document.documentElement;
+        const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
+        const targetP = clamp(window.scrollY / maxScroll, 0, 1);
+
+        currentP = lerp(currentP, targetP, 0.10);
+        apply(currentP);
+
+        if (Math.abs(currentP - targetP) > 0.001) {
+          rafId = requestAnimationFrame(update);
+        } else {
+          currentP = targetP;
+          apply(currentP);
+          rafId = 0;
+        }
+      }
+
+      function onScroll(){
+        if(rafId) return;
+        rafId = requestAnimationFrame(update);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+    </script>
+
+    <!-- 保留後續原本的 JS（IntersectionObserver / 淡入 / 返回） -->
+    <script>
     // Intersection Observer for Scroll Focus Effect
     document.addEventListener('DOMContentLoaded', function() {
         const observerOptions = {

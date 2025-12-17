@@ -30,24 +30,66 @@
             transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
 
-        /* 視差背景 */
+        /* 視差背景（重新設計：深色多層漸層 + 光暈） */
         .parallax-bg {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
             z-index: -1;
-            will-change: transform;
+            overflow: hidden;
+
+            --bg: 18;
+            --a: 0.45;
+
+            background:
+              radial-gradient(900px 700px at 16% 22%, rgba(120, 180, 255, 0.12), rgba(0,0,0,0) 60%),
+              radial-gradient(850px 650px at 78% 70%, rgba(255, 160, 120, 0.09), rgba(0,0,0,0) 62%),
+              radial-gradient(520px 520px at 52% 48%, rgba(255,255,255,0.035), rgba(0,0,0,0) 65%),
+              linear-gradient(140deg,
+                rgb(calc(var(--bg) + 0),  calc(var(--bg) + 0),  calc(var(--bg) + 0)) 0%,
+                rgb(calc(var(--bg) + 12), calc(var(--bg) + 12), calc(var(--bg) + 12)) 55%,
+                rgb(calc(var(--bg) + 22), calc(var(--bg) + 22), calc(var(--bg) + 22)) 100%
+              );
+
+            will-change: transform, filter;
         }
-        
-        /* 裝飾性背景元素 */
+
+        .parallax-bg::before,
+        .parallax-bg::after {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            pointer-events: none;
+            opacity: var(--a);
+            filter: blur(75px);
+            mix-blend-mode: screen;
+            transform: translate3d(0,0,0);
+            will-change: transform, opacity;
+        }
+
+        .parallax-bg::before {
+            background:
+              radial-gradient(closest-side at 28% 30%, rgba(120,180,255,0.16), rgba(0,0,0,0) 74%),
+              radial-gradient(closest-side at 72% 72%, rgba(255,160,120,0.12), rgba(0,0,0,0) 76%);
+        }
+
+        .parallax-bg::after {
+            background:
+              radial-gradient(closest-side at 60% 25%, rgba(210,255,230,0.06), rgba(0,0,0,0) 74%),
+              radial-gradient(closest-side at 35% 80%, rgba(255,255,255,0.04), rgba(0,0,0,0) 76%);
+            opacity: calc(var(--a) * 0.65);
+        }
+
+        /* 裝飾性背景元素（光球：更柔和） */
         .bg-shape {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.03);
-            filter: blur(60px);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), rgba(255,255,255,0.00) 65%);
+            filter: blur(70px);
             z-index: -1;
+            will-change: transform, opacity;
+            opacity: 0.65;
         }
 
         /* 內容區塊樣式 */
@@ -349,21 +391,67 @@
     </div>
 
     <script>
-    // Parallax scroll effect
-    window.addEventListener('scroll', function() {
-      const scrolled = window.scrollY;
+    // Parallax scroll effect（重新設計：全程偏暗 + rAF 節流 + 平滑插值）
+    (function(){
       const bg = document.querySelector('.parallax-bg');
-      const shapes = document.querySelectorAll('.bg-shape');
-      
-      bg.style.transform = `translateY(${scrolled * 0.5}px)`;
-      
-      shapes.forEach((shape, index) => {
-          const speed = 0.2 + (index * 0.1);
-          // 加入水平移動與旋轉
-          shape.style.transform = `translateY(${scrolled * speed}px) translateX(${scrolled * 0.05 * (index % 2 ? 1 : -1)}px) rotate(${scrolled * 0.05}deg)`;
-      });
-    });
+      const shapes = Array.from(document.querySelectorAll('.bg-shape'));
+      if(!bg) return;
 
+      function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+      function lerp(a,b,t){ return a + (b-a)*t; }
+
+      let rafId = 0;
+      let currentP = 0;
+
+      function apply(p){
+        // 全程偏暗：18 -> 40
+        const base = Math.round(lerp(18, 40, p));
+        const alpha = lerp(0.48, 0.36, p);
+        bg.style.setProperty('--bg', String(base));
+        bg.style.setProperty('--a', alpha.toFixed(3));
+
+        const y = window.scrollY;
+        bg.style.transform = `translate3d(0, ${y * 0.045}px, 0)`;
+        bg.style.filter = `saturate(${(1 + p*0.10).toFixed(3)}) contrast(${(1 + p*0.06).toFixed(3)})`;
+        bg.style.backgroundPosition = `${(y*0.008).toFixed(2)}px ${(y*0.018).toFixed(2)}px`;
+
+        shapes.forEach((shape, index) => {
+          const dir = (index % 2 ? 1 : -1);
+          const speed = 0.02 + index * 0.012;
+          shape.style.transform = `translate3d(${(y * 0.015 * dir).toFixed(2)}px, ${(y * (0.04 + speed)).toFixed(2)}px, 0) rotate(${(y * 0.01).toFixed(2)}deg)`;
+          shape.style.opacity = String(lerp(0.55, 0.30, p));
+        });
+      }
+
+      function update(){
+        const doc = document.documentElement;
+        const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
+        const targetP = clamp(window.scrollY / maxScroll, 0, 1);
+
+        currentP = lerp(currentP, targetP, 0.10);
+        apply(currentP);
+
+        if (Math.abs(currentP - targetP) > 0.001) {
+          rafId = requestAnimationFrame(update);
+        } else {
+          currentP = targetP;
+          apply(currentP);
+          rafId = 0;
+        }
+      }
+
+      function onScroll(){
+        if(rafId) return;
+        rafId = requestAnimationFrame(update);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+    </script>
+
+    <script>
     // Intersection Observer for Scroll Focus Effect
     document.addEventListener('DOMContentLoaded', function() {
         const observerOptions = {
