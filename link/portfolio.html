@@ -5,12 +5,12 @@
     <title>作品集 Portfolio</title> <link rel="stylesheet" href="../styles.css">
     <style>
         /* 這裡的 CSS 專門給內容頁面使用，覆蓋原本 styles.css 的設定 */
-        
+
         /* 1. 允許捲動：覆蓋原本 body 的 overflow: hidden */
         body {
-            overflow-y: auto !important; 
+            overflow-y: auto !important;
             overflow-x: hidden;
-            background-color: #1a1a1a;
+            background-color: #141414;
             color: white;
             padding: 0;
             margin: 0;
@@ -18,36 +18,73 @@
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
-        /* 動畫效果 */
-        .fadeout {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-        .fadein {
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-        }
-
-        /* 視差背景 */
+        /* --- 新的滾動式背景系統 --- */
         .parallax-bg {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            inset: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #1f1f1f 0%, #3a3a3a 100%);
-            z-index: -1;
-            will-change: transform;
+            z-index: -2;
+            overflow: hidden;
+
+            /* 以 CSS 變數驅動明暗（由 JS 在滾動時更新） */
+            --bg: 14;   /* base gray：全程偏暗 */
+            --a: 0.55;  /* overlay alpha */
+
+            background:
+              radial-gradient(900px 700px at 18% 22%, rgba(120, 180, 255, 0.16), rgba(0,0,0,0) 60%),
+              radial-gradient(800px 600px at 72% 68%, rgba(255, 150, 120, 0.12), rgba(0,0,0,0) 62%),
+              radial-gradient(520px 520px at 50% 50%, rgba(255,255,255,0.035), rgba(0,0,0,0) 65%),
+              linear-gradient(135deg,
+                rgb(calc(var(--bg) + 0),  calc(var(--bg) + 0),  calc(var(--bg) + 0)) 0%,
+                rgb(calc(var(--bg) + 10), calc(var(--bg) + 10), calc(var(--bg) + 10)) 55%,
+                rgb(calc(var(--bg) + 18), calc(var(--bg) + 18), calc(var(--bg) + 18)) 100%
+              );
+
+            transition: filter 200ms linear;
+            will-change: transform, filter;
         }
-        
-        /* 裝飾性背景元素 */
+
+        /* 額外的光暈層：用偽元素做更柔和的動態 */
+        .parallax-bg::before,
+        .parallax-bg::after {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            opacity: var(--a);
+            filter: blur(60px);
+            transform: translate3d(0,0,0);
+            will-change: transform, opacity;
+        }
+
+        .parallax-bg::before {
+            background:
+              radial-gradient(closest-side at 30% 30%, rgba(120,180,255,0.22), rgba(0,0,0,0) 70%),
+              radial-gradient(closest-side at 70% 70%, rgba(255,160,120,0.18), rgba(0,0,0,0) 72%);
+        }
+
+        .parallax-bg::after {
+            background:
+              radial-gradient(closest-side at 60% 25%, rgba(200,255,220,0.10), rgba(0,0,0,0) 72%),
+              radial-gradient(closest-side at 35% 80%, rgba(255,255,255,0.06), rgba(0,0,0,0) 75%);
+            opacity: calc(var(--a) * 0.65);
+        }
+
+        /* 裝飾性背景元素（保留，但降低存在感，避免太花） */
         .bg-shape {
             position: absolute;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.03);
-            filter: blur(40px);
-            z-index: -1;
+            filter: blur(50px);
+            z-index: -3;
+        }
+
+        /* 內容容器在亮背景時仍保持可讀性 */
+        .content-container {
+            background: rgba(20, 20, 20, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         /* 內容區塊樣式 */
@@ -225,7 +262,7 @@
             <h1>作品集 Portfolio</h1>
 
             <div class="intro-section">
-                <p>歡迎來到我的作品集頁面。這裡匯集了我近期參與的設計與開發專案，展示了我在網頁設計、使用者體驗以及互動特效方面的探索與實踐。</p>
+                <p>歡迎來到我的作品集頁面!  </p>
             </div>
 
             <div class="gallery-grid">
@@ -233,8 +270,8 @@
                 <div class="gallery-item">
                     <div class="placeholder-img">Project 01</div>
                     <div class="gallery-info">
-                        <h3>個人品牌網站</h3>
-                        <p>運用 HTML5 與 CSS3 打造的響應式個人網站，強調視覺層次與流暢的閱讀體驗。</p>
+                        <h3>自我介紹網站</h3>
+                        <p>運用 HTML5 與 CSS 創作的響應式個人網站，做出視覺層次與流暢的網站動畫體驗。</p>
                     </div>
                 </div>
                 
@@ -242,8 +279,9 @@
                 <div class="gallery-item">
                     <div class="placeholder-img">Project 02</div>
                     <div class="gallery-info">
-                        <h3>電商購物介面</h3>
-                        <p>專注於使用者購物流程的優化，包含商品展示、購物車互動以及結帳流程設計。</p>
+                        <h3>大二小專題</h3>
+                        <p>charm night，一款以角色歌手躲避瘋狂紛絲為主題的 2D 平台遊戲，使用 Unity 引擎開發，在時間內利用各種操作躲避粉絲攻擊來通關!
+                        </p>
                     </div>
                 </div>
 
@@ -251,8 +289,8 @@
                 <div class="gallery-item">
                     <div class="placeholder-img">Project 03</div>
                     <div class="gallery-info">
-                        <h3>互動式儀表板</h3>
-                        <p>使用 JavaScript 實現的數據視覺化儀表板，提供即時的數據分析與圖表呈現。</p>
+                        <h3>繪畫作品</h3>
+                        <p>個人一些創作作品</p>
                     </div>
                 </div>
 
@@ -260,8 +298,8 @@
                 <div class="gallery-item">
                     <div class="placeholder-img">Project 04</div>
                     <div class="gallery-info">
-                        <h3>攝影作品集</h3>
-                        <p>極簡風格的攝影作品展示頁面，採用瀑布流佈局與燈箱效果。</p>
+                        <h3>攝影作品</h3>
+                        <p>以商品代言為主題──極簡風格的攝影作品。</p>
                     </div>
                 </div>
             </div>
@@ -273,21 +311,72 @@
     </div>
 
     <script>
-    // Parallax scroll effect
+    // 新的滾動式背景：全程偏暗，只做細緻暗色漸層（避免變白）
+    (function(){
+      const bg = document.querySelector('.parallax-bg');
+      if(!bg) return;
+
+      function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+      function lerp(a,b,t){ return a + (b-a)*t; }
+
+      let rafId = 0;
+      let currentP = 0;
+
+      function apply(p){
+        // 全程暗：灰階 12 -> 42
+        const base = Math.round(lerp(12, 42, p));
+        // 光暈透明度小幅變化，製造「有漸層感但不變亮」
+        const alpha = lerp(0.55, 0.38, p);
+
+        bg.style.setProperty('--bg', String(base));
+        bg.style.setProperty('--a', alpha.toFixed(3));
+
+        const y = window.scrollY;
+        // 只做非常輕微的視差，避免看起來在跳
+        bg.style.transform = `translate3d(0, ${y * 0.035}px, 0)`;
+        bg.style.filter = `saturate(${(1 + p*0.08).toFixed(3)}) contrast(${(1 + p*0.06).toFixed(3)})`;
+
+        // 讓漸層「流動」：小幅移動背景位置
+        bg.style.backgroundPosition = `${(y * 0.008).toFixed(2)}px ${(y * 0.018).toFixed(2)}px`;
+      }
+
+      function update(){
+        const doc = document.documentElement;
+        const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
+        const targetP = clamp(window.scrollY / maxScroll, 0, 1);
+
+        // 平滑插值
+        currentP = lerp(currentP, targetP, 0.10);
+        apply(currentP);
+
+        if (Math.abs(currentP - targetP) > 0.001) {
+          rafId = requestAnimationFrame(update);
+        } else {
+          currentP = targetP;
+          apply(currentP);
+          rafId = 0;
+        }
+      }
+
+      function onScroll(){
+        if (rafId) return;
+        rafId = requestAnimationFrame(update);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      onScroll();
+    })();
+
+    // Parallax scroll effect（保留原本對裝飾圓形的移動，但減弱強度）
     window.addEventListener('scroll', function() {
       const scrolled = window.scrollY;
-      const bg = document.querySelector('.parallax-bg');
       const shapes = document.querySelectorAll('.bg-shape');
-      
-      // 背景整體移動 - 加大係數讓視差更明顯
-      bg.style.transform = `translateY(${scrolled * 0.6}px)`;
-      
-      // 裝飾圖形不同速度移動，創造深度感
       shapes.forEach((shape, index) => {
-          const speed = 0.3 + (index * 0.15); // 速度加快
-          shape.style.transform = `translateY(${scrolled * speed}px) rotate(${scrolled * 0.1}deg)`;
+          const speed = 0.12 + (index * 0.08);
+          shape.style.transform = `translateY(${scrolled * speed}px) rotate(${scrolled * 0.03}deg)`;
       });
-    });
+    }, { passive: true });
 
     // Intersection Observer for Scroll Focus Effect
     document.addEventListener('DOMContentLoaded', function() {

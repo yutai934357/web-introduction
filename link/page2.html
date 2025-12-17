@@ -103,15 +103,9 @@
     (function(){
       const colorBlack = { r: 25, g: 25, b: 25 };
       const colorGray  = { r: 136, g: 136, b: 136 };
-      const colorWhite = { r: 255, g: 255, b: 255 };
+      const colorWhite = { r: 235, g: 235, b: 235 }; // 原本 255,255,255 改成淺灰
 
-      // 獲取當前滾動位置對應的顏色
-      function getCurrentBgColor(){
-        const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
-        let progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-        return calculateColor(progress);
-      }
-
+      // 計算滾動進度對應的背景色
       function calculateColor(progress) {
         let r, g, b;
         if(progress < 0.5){
@@ -130,32 +124,31 @@
 
       function lerp(a, b, t){ return a + (b - a) * t; }
 
-      // 監聽滾動以更新背景色 (保留原本邏輯)
-      window.addEventListener('scroll', function() {
-          const color = getCurrentBgColor();
-          document.body.style.backgroundColor = `rgb(${color.r},${color.g},${color.b})`;
-          
-          // 更新按鈕狀態
-          const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
-          const isBottom = window.scrollY > maxScroll * 0.8; // 接近底部就算亮色模式
-          
-          if (isBottom) {
-              document.body.classList.add('light-mode');
-          } else {
-              document.body.classList.remove('light-mode');
-          }
-      });
+      // 單一來源：更新背景 + 更新按鈕/模式
+      function updateBg(){
+        const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+        const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+        const color = calculateColor(progress);
+        document.body.style.backgroundColor = `rgb(${color.r},${color.g},${color.b})`;
 
-      // 背景切換按鈕邏輯
+        // 背景夠亮時切換按鈕樣式（你原本的 CSS 已套在 body.light-mode）
+        const isLight = progress > 0.8;
+        document.body.classList.toggle('light-mode', isLight);
+      }
+
+      window.addEventListener('scroll', updateBg, { passive: true });
+      window.addEventListener('resize', updateBg);
+      updateBg();
+
+      // 背景切換按鈕邏輯：在頂部→滑到底部（白），在底部→回到頂部（黑）
       const themeBtn = document.getElementById('theme-toggle-btn');
       themeBtn.addEventListener('click', function() {
           const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
           const currentScroll = window.scrollY;
-          const isAtTop = currentScroll < maxScroll / 2;
-          
-          const targetScroll = isAtTop ? maxScroll : 0;
-          const duration = 1500; // 1.5秒絲滑滾動
-          
+          const isAtTopHalf = currentScroll < maxScroll / 2;
+
+          const targetScroll = isAtTopHalf ? maxScroll : 0;
+          const duration = 1500;
           smoothScrollTo(targetScroll, duration);
       });
 
@@ -168,20 +161,25 @@
           function step(currentTime) {
               const elapsed = currentTime - startTime;
               const progress = Math.min(elapsed / duration, 1);
-              
-              // Easing function: easeInOutCubic
+
+              // easeInOutCubic
               const ease = progress < 0.5 
                   ? 4 * progress * progress * progress 
                   : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
               window.scrollTo(0, startY + distance * ease);
 
-              if (progress < 1) {
-                  requestAnimationFrame(step);
-              }
+              if (progress < 1) requestAnimationFrame(step);
           }
 
           requestAnimationFrame(step);
+      }
+
+      // 讓跳頁時「回黑」的動畫沿用目前的色階
+      function getCurrentBgColor(){
+        const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+        const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+        return calculateColor(progress);
       }
 
       function animateBgToBlack(callback){
@@ -209,73 +207,16 @@
         link.addEventListener('click', function(e){
           e.preventDefault();
           var href = this.getAttribute('href');
-          // 先讓內容淡出
           var fc = document.getElementById('fixed-content');
           if(fc){
             fc.classList.remove('fadein');
             fc.classList.add('fadeout');
           }
-          // 背景漸層回黑色
           animateBgToBlack(function(){
             window.location.href = href;
           });
         });
       });
-    })();
-    </script>
-
-    <script>
-    (function(){
-        // 線性插值計算
-        function lerp(start, end, t) {
-            return start * (1 - t) + end * t;
-        }
-
-        // 定義顏色 RGB
-        const colorBlack = { r: 25, g: 25, b: 25 };
-        const colorGray  = { r: 136, g: 136, b: 136 };
-        const colorWhite = { r: 255, g: 255, b: 255 };
-
-        function updateBg(){
-            // 計算滾動進度 0 ~ 1
-            const maxScroll = document.body.scrollHeight - window.innerHeight;
-            let progress = window.scrollY / maxScroll;
-            progress = Math.max(0, Math.min(1, progress));
-
-            let r, g, b;
-
-            // 前半段：黑 -> 灰
-            if(progress < 0.5) {
-                let t = progress / 0.5; 
-                r = lerp(colorBlack.r, colorGray.r, t);
-                g = lerp(colorBlack.g, colorGray.g, t);
-                b = lerp(colorBlack.b, colorGray.b, t);
-            } 
-            // 後半段：灰 -> 白
-            else {
-                let t = (progress - 0.5) / 0.5;
-                r = lerp(colorGray.r, colorWhite.r, t);
-                g = lerp(colorGray.g, colorWhite.g, t);
-                b = lerp(colorGray.b, colorWhite.b, t);
-            }
-
-            // 套用背景色
-            document.body.style.backgroundColor = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
-            
-            // 選用功能：當背景太亮時，自動加深文字顏色 (如果不喜歡文字有陰影，可以開啟這段)
-            /*
-            const links = document.querySelectorAll('.main-links-bar a, .centerHover span');
-            if (progress > 0.8) {
-                links.forEach(el => el.style.color = '#333');
-            } else {
-                links.forEach(el => el.style.color = ''); // 恢復 CSS 預設
-            }
-            */
-        }
-
-        window.addEventListener('scroll', updateBg);
-        window.addEventListener('resize', updateBg);
-        updateBg(); // 初始化
     })();
     </script>
 
