@@ -50,7 +50,7 @@
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
+            color: #979292;
             font-size: 24px;
             cursor: pointer;
             z-index: 100;
@@ -103,7 +103,7 @@
     (function(){
       const colorBlack = { r: 25, g: 25, b: 25 };
       const colorGray  = { r: 136, g: 136, b: 136 };
-      const colorWhite = { r: 235, g: 235, b: 235 }; // 原本 255,255,255 改成淺灰
+      const colorWhite = { r: 150, g: 150, b: 150 }; // 再暗一點（原本 210）
 
       // 計算滾動進度對應的背景色
       function calculateColor(progress) {
@@ -131,8 +131,8 @@
         const color = calculateColor(progress);
         document.body.style.backgroundColor = `rgb(${color.r},${color.g},${color.b})`;
 
-        // 背景夠亮時切換按鈕樣式（你原本的 CSS 已套在 body.light-mode）
-        const isLight = progress > 0.8;
+        // 背景夠亮時切換按鈕樣式（終點改淺灰，所以提早一點切換）
+        const isLight = progress > 0.95; // 終點更暗，稍微晚一點切換
         document.body.classList.toggle('light-mode', isLight);
       }
 

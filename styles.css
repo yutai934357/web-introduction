@@ -381,14 +381,14 @@ canvas {
 }
 
 .main-links-bar .nav-link.back-link:hover {
-    color: #fff;
+    color: #c9bebe;
 }
 
 /* Hover 效果 */
 
 .main-links-bar a:hover {
 
-    color: #fff;
+    color: #b6adad;
 
     text-decoration: underline;
 
@@ -402,7 +402,7 @@ canvas {
 
     background: transparent;
 
-    color: #fff; /* 注意：若背景全白時，這裡可能需要改成黑色，或依賴陰影 */
+    color: #9b9090; /* 注意：若背景全白時，這裡可能需要改成黑色，或依賴陰影 */
 
     text-decoration: underline;
 
