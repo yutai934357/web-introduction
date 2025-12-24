@@ -293,6 +293,15 @@
             color: #888;
         }
 
+        /* 如果在 .exp-img 裡放 img，讓圖片以 cover 顯示並填滿容器 */
+        .exp-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 6px;
+        }
+
         /* 返回按鈕樣式 */
         .back-btn-container {
             text-align: center;
@@ -342,7 +351,6 @@
                         <p>負責家中安全與日常維護，確保居家環境的舒適與安寧。</p>
                         <div class="experience-images">
                             <div class="exp-img">IMG</div>
-                            <div class="exp-img">IMG</div>
                         </div>
                     </div>
                 </div>
@@ -355,6 +363,9 @@
                         <h3>高級餐廳協調服務師</h3>
                         <h4>設計盤子擺放方位，最高禮儀上餐，使客人有最舒服用餐體驗</h4>
                         <p>當與客人理念不同時，能夠靈活調整服務方式，確保客人滿意。</p>
+                         <div class="experience-images">
+                            <div class="exp-img"><img src="../IMG_2913.jpg" alt="經歷照片"></div>
+                            
                     </div>
                 </div>
 
