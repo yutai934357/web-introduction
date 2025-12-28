@@ -177,7 +177,7 @@
         .timeline-dot {
             position: absolute;
             left: -36px;
-            top: 5px;
+            top: 10px; /* 調整這裡：原本是 8px，改小一點 點就會往上移 */
             width: 14px;
             height: 14px;
             border-radius: 50%;
@@ -186,6 +186,8 @@
             box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
             transition: transform 0.5s, background 0.5s, box-shadow 0.5s;
         }
+    
+
         
         .timeline-item.in-view .timeline-dot {
             background: #fff; /* 聚焦變亮 */
@@ -357,14 +359,14 @@
                 <!-- 經歷 2 -->
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
-                    <div class="timeline-date">2021 - 2023</div>
-                    <div class="timeline-content">
+                    <div class="timeline-date" style="margin-top: -15px;">2021 - 2023</div>
+                    <div class="timeline-content" style="margin-top: 0px;">
                         <h3>高級餐廳協調服務師</h3>
                         <h4>設計盤子擺放方位，最高禮儀上餐，使客人有最舒服用餐體驗</h4>
                         <p>當與客人理念不同時，能夠靈活調整服務方式，確保客人滿意。</p>
                          <div class="experience-images">
                             <div class="exp-img"><img src="../IMG_2913.jpg" alt="經歷照片"></div>
-                            
+                        </div>
                     </div>
                 </div>
 
