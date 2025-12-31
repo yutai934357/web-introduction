@@ -1,0 +1,23 @@
+{
+  "name": "web-introduction-1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "靜態網站（用於部署到 Render）",
+  "main": "index.js",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "serve -s . -l $PORT",
+    "build": "echo \"No build step\"",
+    "test": "echo \"No tests\"",
+    "lint": "eslint . || true",
+    "prettier": "prettier --write ."
+  },
+  "dependencies": {
+    "serve": "^14.1.2"
+  },
+  "keywords": ["static", "render", "website"],
+  "author": "",
+  "license": "MIT"
+}
