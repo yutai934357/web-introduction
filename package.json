@@ -1,23 +1,16 @@
 {
-  "name": "web-introduction-1",
+  "name": "web-introduction",
   "version": "1.0.0",
-  "private": true,
-  "description": "靜態網站（用於部署到 Render）",
-  "main": "index.js",
-  "engines": {
-    "node": "18.x"
-  },
+  "description": "",
+  "main": "script.js",
   "scripts": {
-    "start": "serve -s . -l $PORT",
-    "build": "echo \"No build step\"",
-    "test": "echo \"No tests\"",
-    "lint": "eslint . || true",
-    "prettier": "prettier --write ."
+    "start": "node script.js"
   },
   "dependencies": {
-    "serve": "^14.1.2"
+    "express": "^4.18.2",
+    "pg": "^8.11.0"
   },
-  "keywords": ["static", "render", "website"],
-  "author": "",
-  "license": "MIT"
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
