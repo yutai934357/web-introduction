@@ -144,24 +144,29 @@ function blackhole(element) {
         }
     }
     const express = require('express');
+
+const express = require('express');
+const path = require('path');
 const app = express();
 
-// 必須確保有這個根路由
+// 指定靜態檔案資料夾（假設你的 HTML 放在根目錄）
+app.use(express.static('.'));
+
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-    // Event listeners
-    const centerHover = document.querySelector('.centerHover');
-    
-    centerHover.addEventListener('click', function() {
-        collapse = false;
-        expanse = true;
-        returning = false;
-        this.classList.add('open');
+// Event listeners
+const centerHover = document.querySelector('.centerHover');
+
+centerHover.addEventListener('click', function() {
+    collapse = false;
+    expanse = true;
+    returning = false;
+    this.classList.add('open');
 
         // 新增：body 淡出動畫
         document.body.classList.add('fadeout');
